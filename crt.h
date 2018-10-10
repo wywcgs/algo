@@ -1,5 +1,5 @@
-#ifndef ALGO_H_
-#define ALGO_H_
+#ifndef ALGO_CRT_H_
+#define ALGO_CRT_H_
 
 namespace algo {
 
@@ -61,4 +61,4 @@ bool CRT<T>::Merge(T a2, T n2) {
 
 };
 
-#endif  // ALGO_H_
+#endif  // ALGO_CRT_H_
