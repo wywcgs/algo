@@ -6,6 +6,6 @@ namespace algo {
 typedef long long llong;
 typedef long double ldouble;
  
-};
+}  // namespace algo
 
 #endif  // ALGO_DEFS_H_

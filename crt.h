@@ -1,9 +1,9 @@
 #ifndef ALGO_CRT_H_
 #define ALGO_CRT_H_
 
-namespace algo {
-
 #include <algorithm>
+
+namespace algo {
  
 template <typename T>
 class CRT {
@@ -59,6 +59,6 @@ bool CRT<T>::Merge(T a2, T n2) {
   return true;
 }
 
-};
+}  // namespace algo
 
 #endif  // ALGO_CRT_H_

@@ -1,9 +1,9 @@
 #ifndef ALGO_MODULAR_H_
 #define ALGO_MODULAR_H_
 
-namespace algo {
-
 #include "defs.h"
+
+namespace algo {
 
 int powR(int a, llong n, int p)
 {
@@ -23,6 +23,6 @@ int inverse(int a, int p)
   return powR(a, p-2, p);
 }
 
-};
+}  // namespace algo
 
 #endif  // ALGO_MODULAR_H_
