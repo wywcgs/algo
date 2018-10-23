@@ -10,6 +10,8 @@
 namespace algo {
 namespace {
 
+const int kMaxBit = 62;
+
 std::set<llong> InitF() {
   std::set<llong> F;
   // all 2^{2^n}
@@ -27,19 +29,23 @@ void FermatBase(llong a, std::vector<int>* fa) {
 
 class NimArithmic {
  public:
-  NimArithmic() : F(InitF()) {}
+  NimArithmic() : F(InitF()) { memset(resFB, -1, sizeof(resFB)); }
   llong add(llong a, llong b) const { return a^b; }
-  llong multiply(llong a, llong b) const;
-  llong inverse(llong a) const;
+  
+  // Following methods are not const mainly because of memorization.
+  llong multiply(llong a, llong b);
+  llong inverse(llong a);
+  llong divide(llong a, llong b) { return multiply(a, inverse(b)); }
 
  private:
-  llong MultiplyFermatBase(int na, int nb) const;
+  llong MultiplyFermatBase(int na, int nb);
 
   std::set<llong> F;
+  llong resFB[kMaxBit][kMaxBit];
 };
 
 // TODO(wywcgs): Figure out the time complexity
-llong NimArithmic::multiply(llong a, llong b) const {
+llong NimArithmic::multiply(llong a, llong b) {
   if (a < b) std::swap(a, b);
   if (F.count(a) > 0) return a == b ? a/2*3 : a*b;
   if (b == 0) return 0;
@@ -58,7 +64,9 @@ llong NimArithmic::multiply(llong a, llong b) const {
   return res;
 }
 
-llong NimArithmic::MultiplyFermatBase(int na, int nb) const {
+llong NimArithmic::MultiplyFermatBase(int na, int nb) {
+  if (resFB[na][nb] != -1) return resFB[na][nb];
+
   llong base = 1LL<<(na^nb);
   int overlap = na&nb;
   if (overlap == 0) return base;
@@ -77,7 +85,7 @@ llong NimArithmic::MultiplyFermatBase(int na, int nb) const {
     res = add(res, current);
   }
 
-  return multiply(res, base);
+  return resFB[na][nb] = multiply(res, base);
 }
 
 // Find the inverse element m of given n.
@@ -87,13 +95,14 @@ llong NimArithmic::MultiplyFermatBase(int na, int nb) const {
 // - n cannot be too large (to avoid 64 bit integer overflow).
 //   The exact limitation is unknown
 // TODO(wywcgs): Figure out the time complexity
-llong NimArithmic::inverse(llong n) const {
+llong NimArithmic::inverse(llong n) {
   if (n == 0) return -1;
   if (n == 1) return 1;
 
   llong gf = 2;
   for (auto f : F)
-    if (f <= n) gf = f;
+    if (f <= n) gf = std::max(f, gf);
+
   llong a = n/gf, n_add_a = add(n, a);
   llong m = inverse(multiply(n, n_add_a));
   return multiply(m, n_add_a);
