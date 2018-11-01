@@ -14,7 +14,8 @@ class Numbers {
   // Parameters:
   // - n: the max order to be processed
   // - modp: the mod, which must be a prime
-  Numbers(int n_, int modp_);
+  Numbers(int n_, int modp_) : Numbers(n_, modp_, false) {}
+  Numbers(int n_, int mopp_, bool bernoulli_);
 
   int inv(int k) const { return inverse[k]; }
   // B_plus(k) = (-1)^k * B_minus(k)
@@ -41,13 +42,17 @@ class Numbers {
 
   int n;
   int modp;
+  bool bernoulli;
 };
 
-Numbers::Numbers(int n_, int modp_) : n(n_), modp(modp_) {
+Numbers::Numbers(int n_, int modp_, bool bernoulli_)
+    : n(n_), modp(modp_), bernoulli(bernoulli_) {
   GetInverse();
   GetFactors();
   GetFactorsInverse();
-  GetBernoulliPlus();
+  if (bernoulli) {
+    GetBernoulliPlus();
+  }
 }
 
 void Numbers::GetInverse() {
