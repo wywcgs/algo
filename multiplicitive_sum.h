@@ -226,7 +226,7 @@ llong MultiplicitiveSum::PrefixSum(MultiplicitiveFunction mf,
                                    int mod) {
   GetSumOverPrimes(mc, mod);
 
-  llong res = GetSumOverMultiples(mf, N, 1, -1, mod) + getSumP(N);
+  llong res = GetSumOverMultiples(mf, N, 1, -1, mod) + getSumP(N) - getSumP(1) + 1;
   if (mod != 0) res = (res+mod) % mod;
   return res;
 }
