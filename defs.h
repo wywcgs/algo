@@ -15,7 +15,7 @@ typedef long double ldouble;
 #define ALL(v) (v).begin(), (v).end()
 #define SZ(v) (int)((v).size())
 #define FOR(i, a, b) for(typeof(a) i = (a); i < (b); i++)
-#define FOREACH(i, v) for(typeof((v).begin()) i = (v).begin(); i != (v).end(); i++)
+#define FOREACH(i, v) for(const auto& i : v)
 
 }  // namespace algo
 
