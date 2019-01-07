@@ -11,7 +11,7 @@ namespace algo {
 class DivisionEnumator {
  public:
   // emit_fn(result, divisor_min, divisor_max) means:
-  // - for all numbers x in range [divisor_min, divisor_max),
+  // - for all numbers x in range (divisor_min, divisor_max],
   //   n/x = result always holds
   //
   // It is guaranteed that all ranges forms a parition of [1, n].
@@ -23,13 +23,13 @@ void DivisionEnumator::Do(llong n, std::function<void(llong, llong, llong)> emit
   for (llong i = 1; i*i <= n; i++) {
     llong ki = n/i;
     if (ki <= i) break;
-    emit_fn(ki, i, i+1);
+    emit_fn(ki, i-1, i);
   }
 
   for (llong i = 1; i*i <= n; i++) {
     // start and end of x with floor(k/x) = i
     llong begin = n/(i+1), end = n/i;
-    emit_fn(i, begin+1, end+1);
+    emit_fn(i, begin, end);
   }
 }
 
