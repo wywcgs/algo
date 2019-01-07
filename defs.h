@@ -1,6 +1,8 @@
 #ifndef ALGO_DEFS_H_
 #define ALGO_DEFS_H_
 
+#include <functional>
+
 namespace algo {
 
 typedef long long llong;
@@ -15,7 +17,13 @@ typedef long double ldouble;
 #define ALL(v) (v).begin(), (v).end()
 #define SZ(v) (int)((v).size())
 #define FOR(i, a, b) for(typeof(a) i = (a); i < (b); i++)
-#define FOREACH(i, v) for(typeof((v).begin()) i = (v).begin(); i != (v).end(); i++)
+#define FOREACH(i, v) for(const auto& i : v)
+
+// Definitions for multiplicitive functions
+
+typedef std::function<llong(llong, int, int)> MultiplicitiveFunction;
+typedef std::function<llong(llong, int)> NtFunction;
+
 
 }  // namespace algo
 

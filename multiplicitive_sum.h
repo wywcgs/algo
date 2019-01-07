@@ -2,7 +2,8 @@
 #define ALGO_MULTIPLICITIVE_SUM_H_
 
 #include <algorithm>
-#include <functional>
+#include <cmath>
+#include <cstring>
 #include <memory>
 #include <vector>
 
@@ -11,19 +12,15 @@
 
 namespace algo {
 
-typedef std::function<llong(int, int, int)> MultiplicitiveFunction;
-typedef std::function<llong(llong, int)> SumFunction;
-
 class MultiplicitiveCombination {
  public:
-  typedef std::function<llong(llong, int)> SumFunction;
-  typedef std::tuple<llong, SumFunction> CombinationEntry;
+  typedef std::tuple<llong, NtFunction> CombinationEntry;
 
   class Builder {
    public:
     Builder() {}
 
-    Builder* AddFunction(llong coef, SumFunction func) {
+    Builder* AddFunction(llong coef, NtFunction func) {
       entries.push_back(std::make_tuple(coef, func));
       return this;
     }
@@ -63,7 +60,7 @@ class MultiplicitiveSum {
   //     g(p) = f(p) for all prime p.
   // - mod: 0 if no mod is required (i.e., the real value).
   llong PrefixSum(MultiplicitiveFunction mf,
-                  SumFunction mf_sum, int mod);
+                  NtFunction mf_sum, int mod);
 
   // Same prefix function, but uses linear combination of fully
   // multiplicitive functions to approximate the targt function.
@@ -73,7 +70,7 @@ class MultiplicitiveSum {
 
  private:
   // Calculates \sum{ f(p) : 0 < p <= M and p is a prime } for some M.
-  void GetSumOverPrimes(SumFunction mf_sum, int mod);
+  void GetSumOverPrimes(NtFunction mf_sum, int mod);
 
   void GetSumOverPrimes(const MultiplicitiveCombination& mc,
                         int mod);
@@ -92,7 +89,7 @@ class MultiplicitiveSum {
                             int mod) const;
 
   llong getSumP(llong k) const {
-    return k <= sqrt_n_ ? sum_p[k] : sum2_p[N/k];
+    return k <= SG_N ? sum_p[k] : sum2_p[N/k];
   }
 
   void update(llong& a, llong index, int pIndex, int mod) {
@@ -102,7 +99,8 @@ class MultiplicitiveSum {
   }
 
   llong N;
-  int sqrt_n_;
+  // SG_N = floor(N^{1/2})
+  int SG_N;
   std::vector<int> primes;
 
   // Temporary varibles used during the calculation.
@@ -118,27 +116,27 @@ class MultiplicitiveSum {
 };
 
 MultiplicitiveSum::MultiplicitiveSum(llong n) : N(n) {
-  sqrt_n_ = int(sqrt(n));
+  SG_N = int(sqrt(n));
 
-  auto is_prime = std::make_unique<bool[]>(sqrt_n_+1);
-  memset(is_prime.get(), true, sizeof(bool)*(sqrt_n_+1));
+  auto is_prime = std::make_unique<bool[]>(SG_N+1);
+  memset(is_prime.get(), true, sizeof(bool)*(SG_N+1));
 
-  for (int i = 2; i <= sqrt_n_; i++) if (is_prime[i]) {
+  for (int i = 2; i <= SG_N; i++) if (is_prime[i]) {
     primes.push_back(i);
-    for (int j = i+i; j <= sqrt_n_; j += i) is_prime[j] = false;
+    for (int j = i+i; j <= SG_N; j += i) is_prime[j] = false;
   }
 
   fp = std::make_unique<llong[]>(primes.size());
-  sum_p = std::make_unique<llong[]>(sqrt_n_+1);
-  sum2_p = std::make_unique<llong[]>(sqrt_n_+1);
+  sum_p = std::make_unique<llong[]>(SG_N+1);
+  sum2_p = std::make_unique<llong[]>(SG_N+1);
 }
 
 void MultiplicitiveSum::GetSumOverPrimes(
-    SumFunction mf_sum, int mod) {
+    NtFunction mf_sum, int mod) {
   for (int i = 0; i < primes.size(); i++)
     fp[i] = mf_sum(primes[i], mod) - mf_sum(primes[i]-1, mod);
-  for (int i = 0; i <= sqrt_n_; i++) sum_p[i] = mf_sum(i, mod);
-  for (int i = 1; i <= sqrt_n_; i++) sum2_p[i] = mf_sum(N/i, mod);
+  for (int i = 0; i <= SG_N; i++) sum_p[i] = mf_sum(i, mod);
+  for (int i = 1; i <= SG_N; i++) sum2_p[i] = mf_sum(N/i, mod);
 
   int pIndex = 0;
   for (llong p : primes) {
@@ -146,9 +144,9 @@ void MultiplicitiveSum::GetSumOverPrimes(
     // - either a prime number, or
     // - a composite number whose smallest prime factor is >= primes[i]
     llong minN = p*(p-1);
-    for (int j = 1; j <= sqrt_n_ && N/j > minN; j++)
+    for (int j = 1; j <= SG_N && N/j > minN; j++)
       update(sum2_p[j], N/j, pIndex, mod);
-    for (int j = sqrt_n_; j >= 0 && j > minN; j--)
+    for (int j = SG_N; j >= 0 && j > minN; j--)
       update(sum_p[j], j, pIndex, mod);
     pIndex++;
   }
@@ -157,11 +155,11 @@ void MultiplicitiveSum::GetSumOverPrimes(
 void MultiplicitiveSum::GetSumOverPrimes(
     const MultiplicitiveCombination& mc, int mod) {
   std::unique_ptr<llong[]> sum_p_tmp_ =
-      std::make_unique<llong[]>(sqrt_n_+1);
+      std::make_unique<llong[]>(SG_N+1);
   std::unique_ptr<llong[]> sum2_p_tmp_ =
-      std::make_unique<llong[]>(sqrt_n_+1);
+      std::make_unique<llong[]>(SG_N+1);
 
-  llong array_size = sizeof(llong)*(sqrt_n_+1);
+  llong array_size = sizeof(llong)*(SG_N+1);
 
   memset(sum_p_tmp_.get(), 0, array_size);
   memset(sum2_p_tmp_.get(), 0, array_size);
@@ -169,7 +167,7 @@ void MultiplicitiveSum::GetSumOverPrimes(
   for (auto entry : mc.GetFunctions()) {
     GetSumOverPrimes(std::get<1>(entry), mod);
     llong coef = std::get<0>(entry);
-    for (int i = 0; i <= sqrt_n_; i++) {
+    for (int i = 0; i <= SG_N; i++) {
       sum_p_tmp_[i] += coef*sum_p[i];
       sum2_p_tmp_[i] += coef*sum2_p[i];
       if (mod != 0) {
@@ -214,7 +212,7 @@ llong MultiplicitiveSum::GetSumOverMultiples(MultiplicitiveFunction mf,
 }
 
 llong MultiplicitiveSum::PrefixSum(MultiplicitiveFunction mf,
-                                   SumFunction mf_sum, int mod) {
+                                   NtFunction mf_sum, int mod) {
   MultiplicitiveCombination::Builder builder;
 
   builder.AddFunction(1, mf_sum);
