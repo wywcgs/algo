@@ -101,17 +101,17 @@ void MultiplicitiveSum2::Calculate(MultiplicitiveFunction f,
   CalculateSmallSums(f, modp);
 
   for (int i = 1; i <= SG_N; i++)
-    sum1[i] = CalculateIndex(rPrefixSum, gPrefixSum, i, modp);
+    sum1[i] = CalculateIndex(gPrefixSum, rPrefixSum, i, modp);
 
   for (int i = SG_N; i >= 1; i--)
-    sum2[i] = CalculateIndex(rPrefixSum, gPrefixSum, N/i, modp);
+    sum2[i] = CalculateIndex(gPrefixSum, rPrefixSum, N/i, modp);
 }
 
 llong MultiplicitiveSum2::CalculateIndex(
     NtFunction gPrefixSum, NtFunction rPrefixSum, llong m, int modp) const {
   if (m <= BF_N) return smallSum[m];
 
-  DivisionEnumator de;
+  DivisionEnumerator de;
   llong res = rPrefixSum(m, modp);
 
   de.Do(m, [this, &res, &rPrefixSum, &gPrefixSum, &modp]

@@ -8,7 +8,7 @@
 namespace algo {
 
 // Enumerates all results of pattern n/k where k iterates in [1, n].
-class DivisionEnumator {
+class DivisionEnumerator {
  public:
   // emit_fn(result, divisor_min, divisor_max) means:
   // - for all numbers x in range (divisor_min, divisor_max],
@@ -18,7 +18,7 @@ class DivisionEnumator {
   void Do(llong n, std::function<void(llong, llong, llong)> emit_fn) const;
 };
 
-void DivisionEnumator::Do(llong n, std::function<void(llong, llong, llong)> emit_fn) const {
+void DivisionEnumerator::Do(llong n, std::function<void(llong, llong, llong)> emit_fn) const {
   // Enumerates divisor
   for (llong i = 1; i*i <= n; i++) {
     llong ki = n/i;
