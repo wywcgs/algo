@@ -16,14 +16,14 @@ class MultiplicitiveSum2 {
   MultiplicitiveSum2(llong n) : N(n) {
     BF_N = llong(pow(N, 2.0/3));
     SG_N = int(pow(N, 1.0/2));
-    
+  
     sum1 = std::make_unique<llong[]>(SG_N+1);
     sum2 = std::make_unique<llong[]>(SG_N+1);
     smallSum = std::make_unique<llong[]>(BF_N+1);
   }
-
+ 
   // Calculates the prefix sum of given multiplicitive function in some fixed prefixes.
-  // 
+  //
   // Input:
   // - f: the original function which you want to get prefix sum. You only need to
   //      define it on all number prime numbers and their powers.
@@ -36,19 +36,19 @@ class MultiplicitiveSum2 {
   // Output: 
   // - It can calculate $2*sqrt(N)$ prefix sums alltogether. A prefix index m can be
   //   calculated if there is another number m' which satifies floor(N/m') = m.
-  //   The result can be accessed via "GetPrefixSum" method. 
+  //   The result can be accessed via "GetPrefixSum" method.
   void Calculate(MultiplicitiveFunction f,
       NtFunction gPrefixSum, NtFunction rPrefixSum, int modp);
 
   // Gets the prefix sum of index m. Must be called after method Calculate.
   llong GetPrefixSum(llong m) const { return m <= BF_N ? smallSum[m] : sum2[N/m]; }
- 
+
  private:
   void CalculateSmallSums(MultiplicitiveFunction f, int modp);
- 
+
   llong CalculateIndex(NtFunction gPrefixSum,
       NtFunction rPrefixSum, llong m, int modp) const;
- 
+
   llong N;
   // BF_N = floor(N^{2/3})
   llong BF_N;
@@ -88,7 +88,7 @@ void MultiplicitiveSum2::CalculateSmallSums(MultiplicitiveFunction f, int modp) 
     smallSum[i] = smallSum[m] * f(p, pc, modp);
     if (modp != 0) smallSum[i] %= modp;
   }
-  
+
   // Get the prefix sums.
   for (int i = 1; i <= BF_N; i++) {
     smallSum[i] += smallSum[i-1];
@@ -122,7 +122,7 @@ llong MultiplicitiveSum2::CalculateIndex(
     if (modp != 0) res %= modp;
   });
 
-  return res;
+  return modp == 0 ? res : (res+modp)%modp;
 }
 
 }  // namespace algo
