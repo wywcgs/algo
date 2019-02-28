@@ -24,6 +24,11 @@ typedef long double ldouble;
 typedef std::function<llong(llong, int, int)> MultiplicitiveFunction;
 typedef std::function<llong(llong, int)> NtFunction;
 
+template <typename T>
+using MultiplicitiveFunctionT = std::function<T(llong, int)>;
+
+template <typename T>
+using NtFunctionT = std::function<T(llong)>;
 
 }  // namespace algo
 
