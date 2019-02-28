@@ -1,8 +1,6 @@
 #ifndef ALGO_MOD_NUM_H
 #define ALGO_MOD_NUM_H
 
-#include <functional>
-
 #include "defs.h"
 #include "modular.h"
 
