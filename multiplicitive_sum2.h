@@ -17,7 +17,7 @@ class MultiplicitiveSum2 {
   MultiplicitiveSum2(llong n) : N(n) {
     BF_N = llong(pow(N, 2.0/3));
     SG_N = int(pow(N, 1.0/2));
-    
+
     sum1 = std::make_unique<T[]>(SG_N+1);
     sum2 = std::make_unique<T[]>(SG_N+1);
     smallSum = std::make_unique<T[]>(BF_N+1);
