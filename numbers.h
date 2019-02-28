@@ -1,6 +1,7 @@
 #ifndef ALGO_NUMBERS_H_
 #define ALGO_NUMBERS_H_
 
+#include <cassert>
 #include <functional>
 #include <memory>
 
@@ -89,6 +90,8 @@ void Numbers::GetBernoulliPlus() {
 }
 
 int Numbers::PrefixSum(llong n, int k) const {
+  assert(bernoulli);
+
   n %= modp;
 
   llong r = 0;
