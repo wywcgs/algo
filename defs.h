@@ -2,12 +2,14 @@
 #define ALGO_DEFS_H_
 
 #include <functional>
+#include <utility>
 
 namespace algo {
 
 typedef long long llong;
 typedef unsigned long long ullong;
 typedef long double ldouble;
+typedef std::pair<int, int> PII;
 
 #define PB push_back
 #define FI first
