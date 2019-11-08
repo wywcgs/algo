@@ -1,6 +1,7 @@
 #ifndef ALGO_MOD_NUM_H
 #define ALGO_MOD_NUM_H
 
+#include <cassert>
 #include <functional>
 
 #include "defs.h"
@@ -65,12 +66,12 @@ class ModNum {
   ModNum<P>& operator /= (const ModNum<P>& b) { return *this = *this / b; }
   ModNum<P>& operator /= (int b) { return *this = *this / b; }
   ModNum<P>& operator /= (llong b) { return *this = *this / b; }
-  
+
   ModNum<P> pow(llong m) const { return ModNum<P>(powR(n, m, P)); }
   ModNum<P> inverse() const {
     // n*x + P*y = 1
     llong x, y;
-    ExtendGcd<llong>(n, P, 1, x, y);
+    assert(ExtendGcd<llong>(n, P, 1, x, y));
     return x;
   }
 

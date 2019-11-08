@@ -2,6 +2,7 @@
 #define ALGO_CRT_H_
 
 #include <algorithm>
+#include <cassert>
 
 #include "gcd.h"
 
@@ -29,7 +30,7 @@ bool CRT<T>::Merge(T a2, T n2) {
   if (c % g != 0) return false;
 
   T x1, x2;
-  ExtendGcd(n_/g, n2/g, c/g, x1, x2);
+  assert(ExtendGcd(n_/g, n2/g, c/g, x1, x2));
   a_ += n_*x1;
   n_ *= n2/g;
   return true;
