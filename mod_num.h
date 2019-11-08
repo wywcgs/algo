@@ -1,7 +1,10 @@
 #ifndef ALGO_MOD_NUM_H
 #define ALGO_MOD_NUM_H
 
+#include <functional>
+
 #include "defs.h"
+#include "gcd.h"
 #include "modular.h"
 
 namespace algo {
@@ -23,25 +26,30 @@ class ModNum {
   operator int() const { return n; }
 
   // Arithmic operations
-  // TODO: support division operators
   friend ModNum<P> operator +(const ModNum<P>& lhs, const ModNum<P>& rhs) { return ModNum<P>(lhs.n+rhs.n); }
   friend ModNum<P> operator +(int lhs, const ModNum<P>& rhs) { return ModNum<P>(lhs+rhs.n); }
   friend ModNum<P> operator +(const ModNum<P>& lhs, int rhs) { return ModNum<P>(lhs.n+rhs); }
   friend ModNum<P> operator +(llong lhs, const ModNum<P>& rhs) { return ModNum<P>(lhs+rhs.n); }
   friend ModNum<P> operator +(const ModNum<P>& lhs, llong rhs) { return ModNum<P>(lhs.n+rhs); }
-  
+
   friend ModNum<P> operator -(const ModNum<P>& lhs, const ModNum<P>& rhs) { return ModNum<P>(lhs.n-rhs.n); }
   friend ModNum<P> operator -(int lhs, const ModNum<P>& rhs) { return ModNum<P>(lhs-rhs.n); }
   friend ModNum<P> operator -(const ModNum<P>& lhs, int rhs) { return ModNum<P>(lhs.n-rhs); }
   friend ModNum<P> operator -(llong lhs, const ModNum<P>& rhs) { return ModNum<P>(lhs-rhs.n); }
   friend ModNum<P> operator -(const ModNum<P>& lhs, llong rhs) { return ModNum<P>(lhs.n-rhs); }
-  
+
   friend ModNum<P> operator *(const ModNum<P>& lhs, const ModNum<P>& rhs) { return ModNum<P>(1LL*lhs.n*rhs.n); }
   friend ModNum<P> operator *(int lhs, const ModNum<P>& rhs) { return ModNum<P>(1LL*lhs*rhs.n); }
   friend ModNum<P> operator *(const ModNum<P>& lhs, int rhs) { return ModNum<P>(1LL*lhs.n*rhs); }
   friend ModNum<P> operator *(llong lhs, const ModNum<P>& rhs) { return ModNum<P>(lhs)*rhs; }
   friend ModNum<P> operator *(const ModNum<P>& lhs, llong rhs) { return lhs*ModNum<P>(rhs); }
-  
+
+  friend ModNum<P> operator /(const ModNum<P>& lhs, const ModNum<P>& rhs) { return lhs*rhs.inverse(); }
+  friend ModNum<P> operator /(int lhs, const ModNum<P>& rhs) { return ModNum<P>(lhs)*rhs.inverse(); }
+  friend ModNum<P> operator /(const ModNum<P>& lhs, int rhs) { return lhs*ModNum<P>(rhs).inverse(); }
+  friend ModNum<P> operator /(llong lhs, const ModNum<P>& rhs) { return ModNum<P>(lhs)*rhs.inverse(); }
+  friend ModNum<P> operator /(const ModNum<P>& lhs, llong rhs) { return lhs*ModNum<P>(rhs).inverse(); }
+
   ModNum<P>& operator += (const ModNum<P>& b) { return *this = *this + b; }
   ModNum<P>& operator += (int b) { return *this = *this + b; }
   ModNum<P>& operator += (llong b) { return *this = *this + b; }
@@ -49,12 +57,22 @@ class ModNum {
   ModNum<P>& operator -= (const ModNum<P>& b) { return *this = *this - b; }
   ModNum<P>& operator -= (int b) { return *this = *this - b; }
   ModNum<P>& operator -= (llong b) { return *this = *this - b; }
-  
+
   ModNum<P>& operator *= (const ModNum<P>& b) { return *this = *this * b; }
   ModNum<P>& operator *= (int b) { return *this = *this * b; }
   ModNum<P>& operator *= (llong b) { return *this = *this * b; }
+
+  ModNum<P>& operator /= (const ModNum<P>& b) { return *this = *this / b; }
+  ModNum<P>& operator /= (int b) { return *this = *this / b; }
+  ModNum<P>& operator /= (llong b) { return *this = *this / b; }
   
   ModNum<P> pow(llong m) const { return ModNum<P>(powR(n, m, P)); }
+  ModNum<P> inverse() const {
+    // n*x + P*y = 1
+    llong x, y;
+    ExtendGcd<llong>(n, P, 1, x, y);
+    return x;
+  }
 
  private:
   int n;
