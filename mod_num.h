@@ -20,7 +20,7 @@ class ModNum {
     else if (n_ < 0 && n_+P >= 0) n = n_+P;
     else {
       int m = n_%P;
-      n = (m >= 0) ? m : P-m;
+      n = (m >= 0) ? m : P+m;
     }
   }
 
