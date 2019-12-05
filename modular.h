@@ -2,8 +2,10 @@
 #define ALGO_MODULAR_H_
 
 #include <algorithm>
+#include <cassert>
 
 #include "defs.h"
+#include "gcd.h"
 
 namespace algo {
 
@@ -25,7 +27,7 @@ llong multiply64(llong a, llong b, llong c)
     a = (a*d)%c;
     b /= d;
   }
-  
+
   return res;
 }
 
@@ -40,7 +42,8 @@ llong powR64(llong a, llong n, llong p)
   return r;
 }
 
-int powR(int a, llong n, int p)
+template <typename T>
+int powR(int a, T n, int p)
 {
   if (n == 0) return 1;
   if (n == 1) return a%p;
@@ -52,12 +55,16 @@ int powR(int a, llong n, int p)
 }
 
 // Gets number b in (0, p) where a*b = 1 (mod p).
-// p must be a prime to work
 int inverse(int a, int p)
 {
-  return powR(a, p-2, p);
+  // a*x + p*y = 1
+  llong x, y;
+  assert(ExtendGcd<llong>(a, p, 1, x, y));
+  return x;
 }
 
+// Gets number b in (0, p) where a*b = 1 (mod p).
+// p must be a prime to work
 llong inverse(llong a, llong p)
 {
   return powR64(a, p-2, p);
