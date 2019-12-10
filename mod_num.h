@@ -68,7 +68,7 @@ class ModNum {
   ModNum<P>& operator /= (llong b) { return *this = *this / b; }
 
   ModNum<P> pow(llong m) const { return ModNum<P>(powR(n, m, P)); }
-  ModNum<P> inverse() const { return inverse(n, P); }
+  ModNum<P> inverse() const { return algo::inverse(n, P); }
 
  private:
   int n;
