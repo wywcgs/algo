@@ -9,6 +9,7 @@
 
 #include "defs.h"
 #include "modular.h"
+#include "multiplicitive_prime_sum.h"
 
 namespace algo {
 
@@ -21,9 +22,9 @@ class MultiplicitiveCombination {
    public:
     Builder() {}
 
-    Builder* AddFunction(llong coef, NtFunctionT<T> func) {
+    Builder& AddFunction(llong coef, NtFunctionT<T> func) {
       entries.push_back(std::make_tuple(coef, func));
-      return this;
+      return *this;
     }
 
     MultiplicitiveCombination Build() {
@@ -70,8 +71,6 @@ class MultiplicitiveSum {
 
  private:
   // Calculates \sum{ f(p) : 0 < p <= M and p is a prime } for some M.
-  void GetSumOverPrimes(NtFunctionT<T> mf_sum);
-
   void GetSumOverPrimes(const MultiplicitiveCombination<T>& mc);
 
   // Calculates the sum of all f(m) where:
@@ -86,12 +85,7 @@ class MultiplicitiveSum {
                         llong X, T fx, int pIndex) const;
 
   T getSumP(llong k) const {
-    return k <= SG_N ? sum_p[k] : sum2_p[N/k];
-  }
-
-  void update(T& a, llong index, int pIndex) {
-    int p = primes[pIndex];
-    a -= (getSumP(index/p) - getSumP(p-1)) * fp[pIndex];
+    return k <= SG_N ? sum[k] : sum2[N/k];
   }
 
   llong N;
@@ -101,77 +95,40 @@ class MultiplicitiveSum {
 
   // Temporary varibles used during the calculation.
 
-  // fp[i] is the f value for primes[i]. caching for better preformance
-  std::unique_ptr<T[]> fp;
-
-  // sum_p[k] = \sum{ f(p) : 0 < p <= k && p is a prime }
-  // sum2_p[k] = \sum{ f(p) : 0 < p <= N/k && p is a prime }
+  // sum[k] = \sum{ f(p) : 0 < p <= k && p is a prime }
+  // sum2[k] = \sum{ f(p) : 0 < p <= N/k && p is a prime }
   // To simplify the calculation, we define 1 to be a prime too
-  std::unique_ptr<T[]> sum_p;
-  std::unique_ptr<T[]> sum2_p;
+  std::vector<T> sum;
+  std::vector<T> sum2;
 };
 
 template <typename T>
 MultiplicitiveSum<T>::MultiplicitiveSum(llong n) : N(n) {
   SG_N = int(sqrt(n));
 
-  auto is_prime = std::make_unique<bool[]>(SG_N+1);
-  memset(is_prime.get(), true, sizeof(bool)*(SG_N+1));
+  auto is_prime = std::vector<bool>(SG_N+1, true);
 
   for (int i = 2; i <= SG_N; i++) if (is_prime[i]) {
     primes.push_back(i);
-    for (int j = i+i; j <= SG_N; j += i) is_prime[j] = false;
-  }
-
-  fp = std::make_unique<T[]>(primes.size());
-  sum_p = std::make_unique<T[]>(SG_N+1);
-  sum2_p = std::make_unique<T[]>(SG_N+1);
-}
-
-template <typename T>
-void MultiplicitiveSum<T>::GetSumOverPrimes(NtFunctionT<T> mf_sum) {
-  for (int i = 0; i < primes.size(); i++)
-    fp[i] = mf_sum(primes[i]) - mf_sum(primes[i]-1);
-  for (int i = 0; i <= SG_N; i++) sum_p[i] = mf_sum(i);
-  for (int i = 1; i <= SG_N; i++) sum2_p[i] = mf_sum(N/i);
-
-  int pIndex = 0;
-  for (llong p : primes) {
-    // After each stage, sum_p and sum2_p contains all numbers that are:
-    // - either a prime number, or
-    // - a composite number whose smallest prime factor is >= primes[i]
-    llong minN = p*(p-1);
-    for (int j = 1; j <= SG_N && N/j > minN; j++)
-      update(sum2_p[j], N/j, pIndex);
-    for (int j = SG_N; j >= 0 && j > minN; j--)
-      update(sum_p[j], j, pIndex);
-    pIndex++;
+    for (llong j = 1LL*i*i; j <= SG_N; j += i) is_prime[j] = false;
   }
 }
 
 template <typename T>
 void MultiplicitiveSum<T>::GetSumOverPrimes(
     const MultiplicitiveCombination<T>& mc) {
-  std::unique_ptr<T[]> sum_p_tmp_ =
-      std::make_unique<T[]>(SG_N+1);
-  std::unique_ptr<T[]> sum2_p_tmp_ =
-      std::make_unique<T[]>(SG_N+1);
+  sum = std::vector<T>(SG_N+1, T(0));
+  sum2 = std::vector<T>(SG_N+1, T(0));
 
-  for (int i = 0; i <= SG_N; i++)
-    sum_p_tmp_[i] = sum2_p_tmp_[i] = 0;
-
+  MultiplicitivePrimeSum<T> mps(N);
   for (auto entry : mc.GetFunctions()) {
-    GetSumOverPrimes(std::get<1>(entry));
+    mps.GetSumOverPrimes(std::get<1>(entry));
     llong coef = std::get<0>(entry);
-    for (int i = 0; i <= SG_N; i++) {
-      sum_p_tmp_[i] += coef*sum_p[i];
-      sum2_p_tmp_[i] += coef*sum2_p[i];
+    for (int i = 1; i <= SG_N; i++) {
+      sum[i] += coef*mps.GetSum(i);
+      sum2[i] += coef*mps.GetSum(N/i);
     }
   }
-
-  llong array_size = 1LL*sizeof(T)*(SG_N+1);
-  memcpy(sum_p.get(), sum_p_tmp_.get(), array_size);
-  memcpy(sum2_p.get(), sum2_p_tmp_.get(), array_size);
 }
 
 template <typename T>
@@ -183,7 +140,7 @@ T MultiplicitiveSum<T>::GetSumOverMultiples(
   // 1. Y has only 1 largest prime factor
   // 2. Y has >= 2 largest prime factors
   for (int i = pIndex+1; i < primes.size(); i++) {
-    //if (X == N) printf("%d/%d\n", i, primes.size());
+    if (X == N) printf("%d/%d\n", i, primes.size());
     int p = primes[i];
     if (1LL*p*p > X) break;
 

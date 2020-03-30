@@ -1,5 +1,5 @@
-#ifndef ALGO_COMPLETE_MULTIPLICITIVE_SUM_H_
-#define ALGO_COMPLETE_MULTIPLICITIVE_SUM_H_
+#ifndef ALGO_MULTIPLICITIVE_PRIME_SUM_H_
+#define ALGO_MULTIPLICITIVE_PRIME_SUM_H_
 
 #include <algorithm>
 #include <cmath>
@@ -10,11 +10,16 @@
 namespace algo {
 
 template <typename T>
-class CompleteMultiplicitiveSum {
+class MultiplicitivePrimeSum {
  public:
-  CompleteMultiplicitiveSum(llong n);
+  MultiplicitivePrimeSum(llong n);
 
-  void GetPrefixSum(NtFunctionT<T> mf_sum);
+  // Calculates \sum{ f(p) : 0 < p <= M and p is a prime } for some M.
+  // - mf_sum: the prefix sum function of an completely multiplicitive
+  //     function f. I.e., mf_sum(n) = (\sum_{i=1}^n f(i)).
+  void GetSumOverPrimes(NtFunctionT<T> mf_sum);
+
+  // Gets the \sum{ f(p) : 0 < p <= k and p is a prime }.
   T GetSum(llong k) const {
     return k <= SG_N ? sum[k] : sum2[N/k];
   }
@@ -43,7 +48,7 @@ class CompleteMultiplicitiveSum {
 };
 
 template <typename T>
-CompleteMultiplicitiveSum<T>::CompleteMultiplicitiveSum(llong n) : N(n) {
+MultiplicitivePrimeSum<T>::MultiplicitivePrimeSum(llong n) : N(n) {
   SG_N = int(sqrt(n));
 
   auto is_prime = std::vector<bool>(SG_N+1, true);
@@ -58,7 +63,7 @@ CompleteMultiplicitiveSum<T>::CompleteMultiplicitiveSum(llong n) : N(n) {
 }
 
 template <typename T>
-void CompleteMultiplicitiveSum<T>::GetPrefixSum(NtFunctionT<T> mf_sum) {
+void MultiplicitivePrimeSum<T>::GetSumOverPrimes(NtFunctionT<T> mf_sum) {
   for (int i = 0; i < primes.size(); i++)
     fp[i] = mf_sum(primes[i]) - mf_sum(primes[i]-1);
   for (int i = 0; i <= SG_N; i++) sum[i] = mf_sum(i);
@@ -80,4 +85,4 @@ void CompleteMultiplicitiveSum<T>::GetPrefixSum(NtFunctionT<T> mf_sum) {
 
 }  // namespace algo
 
-#endif  // ALGO_COMPLETE_MULTIPLICITIVE_SUM_H_
+#endif  // ALGO_MULTIPLICITIVE_PRIME_SUM_H_
