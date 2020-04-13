@@ -50,6 +50,7 @@ void IntervalTree<T>::Set(int px, const T& value) {
 
 template <typename T>
 T IntervalTree<T>::Get(int start, int end) const {
+  if (start >= end) return zero;
   if (leaf()) return data;
   if (start <= x && end >= y) return data;
 
@@ -58,6 +59,7 @@ T IntervalTree<T>::Get(int start, int end) const {
 
   if (start < m) res = merge_f(res, left->Get(start, end));
   if (end > m) res = merge_f(res, right->Get(start, end));
+  return res;
 }
 
 }  // namespace data_structure
