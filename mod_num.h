@@ -25,6 +25,7 @@ class ModNum {
   }
 
   operator int() const { return n; }
+  ModNum<P> operator -() const { return ModNum<P>(P-n); }
 
   // Arithmic operations
   friend ModNum<P> operator +(const ModNum<P>& lhs, const ModNum<P>& rhs) { return ModNum<P>(0LL+lhs.n+rhs.n); }
