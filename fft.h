@@ -12,7 +12,9 @@
 namespace algo {
 namespace {
 
-const double PI = acos(-1);
+typedef std::complex<ldouble> ftype;
+
+const ldouble PI = acosl(-1);
 
 template <typename T>
 class ArraySlice {
@@ -64,42 +66,73 @@ void FftInternal(ArraySlice<T> a, ArraySlice<T> c, ArraySlice<T> w)
   }
 }
 
+int FindFftSize(const std::vector<int>& pa, const std::vector<int>& pb)
+{
+  int len = pa.size() + pb.size() - 1, n = 1;
+  for (; n < len; n *= 2)
+    ;
+  return n;
+}
+
 }  // namespace
 
 
 std::vector<llong> fft(const std::vector<int>& pa, const std::vector<int>& pb)
 {
-  typedef std::complex<double> ftype;
-
-  int len = pa.size() + pb.size() - 1, n = 1;
-  for (; n < len; n *= 2)
-    ;
-
+  int n = FindFftSize(pa, pb);
+  ldouble sqrtn = sqrt(n);
   std::vector<ftype> a(n, ftype()), b(n, ftype());
-  for (int i = 0; i < pa.size(); i++) a[i] = ftype(pa[i]);
-  for (int i = 0; i < pb.size(); i++) b[i] = ftype(pb[i]);
+  for (int i = 0; i < pa.size(); i++) a[i] = ftype(pa[i]) / sqrtn;
+  for (int i = 0; i < pb.size(); i++) b[i] = ftype(pb[i]) / sqrtn;
 
   auto root = std::vector<ftype>(n);
-  for (int i = 0; i < n; i++) root[i] = std::polar(1.0, 2*PI/n*i);
+  for (int i = 0; i < n; i++) root[i] = std::polar(1.0L, 2*PI/n*i);
   auto r = std::vector<ftype>(n);
   auto rt = std::vector<ftype>(n);
 
-  double sqrtn = sqrt(n);
-  //FftInternal(as, rts, ws);
   FftInternal<ftype>(a, rt, root);
-  for (int i = 0; i < n; i++) r[i] = rt[i] / sqrtn;
+  for (int i = 0; i < n; i++) r[i] = rt[i];
   FftInternal<ftype>(b, rt, root);
-  for (int i = 0; i < n; i++) r[i] *= rt[i] / sqrtn;
+  for (int i = 0; i < n; i++) r[i] *= rt[i];
 
   // Get inverse of w
   reverse(root.begin()+1, root.end());
   FftInternal<ftype>(r, rt, root);
 
   std::vector<llong> res(n);
-  for (int i = 0; i < n; i++) {
-    res[i] = llong(round(rt[i].real()));
-//    printf("%d %lld\n", i, res[i]);
+  for (int i = 0; i < n; i++) res[i] = round(rt[i].real());
+  return res;
+}
+
+std::vector<int> fft_modulo(const std::vector<int>& pa, const std::vector<int>& pb, int P)
+{
+  int n = FindFftSize(pa, pb);
+  int nP = sqrt(P)+1;
+  std::vector<int> A0(pa.size(), 0), A1(pa.size(), 0);
+  for (int i = 0; i < pa.size(); i++) {
+    A0[i] = pa[i] % nP;
+    A1[i] = pa[i] / nP;
   }
+  std::vector<int> B0(pb.size(), 0), B1(pb.size(), 0);
+  for (int i = 0; i < pb.size(); i++) {
+    B0[i] = pb[i] % nP;
+    B1[i] = pb[i] / nP;
+  }
+
+  // (A1*M+A0) * (B1*M+B0) = A1*B1*M^2 + ( (A1+A0)*(B1+B0) - A1*B1 - A0*B0 )*M + A0*B0
+  //                       = A1*B1*M*(M-1) - A0*B0*(M-1) + (A1+A0)*(B1+B0)*M
+  std::vector<int> res(n, 0);
+
+  std::vector<llong> a1b1 = fft(A1, B1);
+  for (int i = 0; i < n; i++) res[i] = (res[i] + a1b1[i]%P * nP%P * (nP-1)) % P;
+  std::vector<llong> a0b0 = fft(A0, B0);
+  for (int i = 0; i < n; i++) res[i] = (res[i] + P - a0b0[i]%P * (nP-1)%P) % P;
+
+  for (int i = 0; i < A0.size(); i++) A0[i] += A1[i];
+  for (int i = 0; i < B0.size(); i++) B0[i] += B1[i];
+  std::vector<llong> asbs = fft(A0, B0);
+  for (int i = 0; i < n; i++) res[i] = (res[i] + asbs[i]%P * nP) % P;
+
   return res;
 }
 
