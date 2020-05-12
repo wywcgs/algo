@@ -104,7 +104,11 @@ std::vector<llong> fft(const std::vector<int>& pa, const std::vector<int>& pb)
   return res;
 }
 
-std::vector<int> fft_modulo(const std::vector<int>& pa, const std::vector<int>& pb, int P)
+// FFT which produces results modulo given P.
+// When "cascade" is set, the result will cascade to corresponding order, so
+// that all orders greater than "cascade" will all be discarded.
+std::vector<int> fft_modulo(const std::vector<int>& pa, const std::vector<int>& pb,
+                            int P, int cascade = -1)
 {
   int n = FindFftSize(pa, pb);
   int nP = sqrt(P)+1;
@@ -132,6 +136,10 @@ std::vector<int> fft_modulo(const std::vector<int>& pa, const std::vector<int>& 
   for (int i = 0; i < B0.size(); i++) B0[i] += B1[i];
   std::vector<llong> asbs = fft(A0, B0);
   for (int i = 0; i < n; i++) res[i] = (res[i] + asbs[i]%P * nP) % P;
+
+  if (cascade >= 0) {
+    while (res.size() > cascade+1) res.pop_back();
+  }
 
   return res;
 }
