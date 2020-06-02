@@ -53,29 +53,48 @@ std::vector<T> FindMinimumLinearRecursion(const std::vector<T>& g)
 template<typename T>
 std::vector<T> FindNthElementLinearRepresenation(
     const std::vector<T>& c, llong n) {
+  std::vector<bool> bin;
+  for (; n != 0; n /= 2) bin.push_back(n%2 == 1);
+  reverse(bin.begin(), bin.end());
+  return FindNthElementLinearRepresenation(c, bin);
+}
+
+// Same with above method, but accepts n in binary form
+// (higher bits first), so it can support much larger index.
+template<typename T>
+std::vector<T> FindNthElementLinearRepresenation(
+    const std::vector<T>& c, const std::vector<bool>& bin) {
   int m = c.size();
-  if (n < m) {
-    std::vector<T> r(m, T(0));
-    r[n] = T(1);
+  std::vector<T> r(m, T(0));
+
+  int idx = 0;
+  for (; idx < bin.size(); idx++)
+    if (bin[idx]) break;
+  if (idx == bin.size()) {
+    // n = 0. result is x[0]
+    r[0] = T(1);
     return r;
   }
 
-  std::vector<T> r = FindNthElementLinearRepresenation(c, n/2);
-  std::vector<T> v(2*m, T(0));
-
-  for (int i = 0; i < m; i++) for (int j = 0; j < m; j++)
-    v[i+j] += r[i]*r[j];
-  if (n%2 == 1) {
-    // Add all degress by one
-    for (int i = 2*m-1; i > 0; i--) v[i] = v[i-1];
-    v[0] = T(0);
+  // starts with x[1]
+  r[1] = T(1);
+  for (int l = idx+1; l < bin.size(); l++) {
+    std::vector<T> v(2*m, T(0));
+    for (int i = 0; i < m; i++) for (int j = 0; j < m; j++)
+      v[i+j] += r[i]*r[j];
+    if (bin[l]) {
+      // Add all degress by one
+      for (int i = 2*m-1; i > 0; i--) v[i] = v[i-1];
+      v[0] = T(0);
+    }
+    // Reduce higher degrees
+    for (int i = 2*m-1; i >= m; i--) {
+      if (v[i] == 0) continue;
+      for (int j = 0; j < m; j++) v[i-m+j] += v[i]*c[j];
+    }
+    for (int i = 0; i < m; i++) r[i] = v[i];
   }
-  // Reduce higher degrees
-  for (int i = 2*m-1; i >= m; i--)
-    for (int j = 0; j < m; j++)
-      v[i-m+j] += v[i]*c[j];
 
-  for (int i = 0; i < m; i++) r[i] = v[i];
   return r;
 }
 
