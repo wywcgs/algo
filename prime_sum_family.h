@@ -42,7 +42,7 @@ class PrimeSumFamily {
 
     for (int a : id2p) {
       int prev = p2id[a], cur = p2id[a*p%M];
-      sumv[prev] -= psum[cur] * fp[pIndex];
+      sumv[cur] -= psum[prev] * fp[pIndex];
     }
   }
 
