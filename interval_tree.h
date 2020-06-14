@@ -9,13 +9,16 @@ namespace data_structure {
 template <typename T>
 class IntervalTree {
  public:
-  IntervalTree(int x_, int y_, const T& zero_, std::function<T(T, T)> f)
-      : x(x_), y(y_), data(zero_), zero(zero_), merge_f(f),
+  IntervalTree(int x_, int y_, const T& c_, const T& zero_, std::function<T(T, T)> f)
+      : x(x_), y(y_), data((y_-x_)*c_), zero(zero_), merge_f(f),
         left(nullptr), right(nullptr) {
     if (leaf()) return;
-    left = std::make_unique<IntervalTree>(x, mid(), data, f);
-    right = std::make_unique<IntervalTree>(mid(), y, data, f);
+    left = std::make_unique<IntervalTree>(x, mid(), c_, zero, f);
+    right = std::make_unique<IntervalTree>(mid(), y, c_, zero, f);
   }
+
+  IntervalTree(int x_, int y_, const T& zero_, std::function<T(T, T)> f)
+      : IntervalTree(x, y, zero_, zero_, f) {}
 
   void Set(int px, const T& value);
   T Get(int px) const { return Get(px, px+1); }
