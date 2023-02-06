@@ -53,6 +53,18 @@ int powR(int a, T n, int p)
   if (n&1) r = r*a%p;
   return r;
 }
+  
+template <typename V, typename T>
+V powR(V a, T n)
+{
+  if (n == 0) return 1;
+  if (n == 1) return a;
+
+  V r = powR(a, n>>1);
+  r = r*r;
+  if (n&1) r = r*a;
+  return r;
+}
 
 // Gets number b in (0, p) where a*b = 1 (mod p).
 int inverse(int a, int p)
