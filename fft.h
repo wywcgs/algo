@@ -1,15 +1,19 @@
 #ifndef ALGO_FFT_H_
 #define ALGO_FFT_H_
 
-#include <iostream>
 #include <complex>
 #include <cmath>
+#include <tuple>
 #include <vector>
 
 #include "defs.h"
+#include "modular.h"
 #include "mod_num.h"
 
 namespace algo {
+
+enum FwhtOperator { XOR, AND, OR };
+
 namespace {
 
 typedef std::complex<ldouble> ftype;
@@ -63,6 +67,35 @@ void FftInternal(ArraySlice<T> a, ArraySlice<T> c, ArraySlice<T> w)
     T a1 = c[i], b1 = c[i+hn];
     c[i] = a1 + w[i] * b1;
     c[i+hn] = a1 - w[i] * b1;
+  }
+}
+
+template <typename T>
+void FwhtInternal(std::vector<T>& a, FwhtOperator op, bool inverse)
+{
+  int n = a.size();
+  for (int l = 1; l < n; l *= 2) {
+    for (int i = 0; i < n; i += l+l) {
+      for (int j = i; j < i+l; j++) {
+        T &x = a[j], &y = a[j+l];
+        switch (op) {
+          case XOR:
+            std::tie(x, y) = std::make_pair(x+y, x-y);
+            break;
+          case AND:
+            std::tie(x, y) = inverse ? std::make_pair(x-y, y) : std::make_pair(x, x+y);
+            break;
+          case OR:
+            std::tie(x, y) = inverse ? std::make_pair(x, x-y) : std::make_pair(x+y, y);
+          default:
+            // should never happen.
+            assert(false);
+        }
+      }
+    }
+  }
+  if (inverse && op == XOR) {
+    for (T& i : a) i /= n;
   }
 }
 
@@ -142,6 +175,34 @@ std::vector<int> fft_modulo(const std::vector<int>& pa, const std::vector<int>& 
   }
 
   return res;
+}
+
+// Fast Walsh-Hadamard transformation.
+// Polynomial multiplication but with x^i (*) x^j = x^(i xor j) instead.
+// Size of both a and b must be equal and are a power of 2.
+template <typename T>
+std::vector<T> fwht(std::vector<T> a, std::vector<T> b, FwhtOperator op)
+{
+  assert(a.size() == b.size());
+  int n = a.size();
+
+  FwhtInternal(a, op, false);
+  FwhtInternal(b, op, false);
+  std::vector<T> c(n);
+  for (int i = 0; i < n; i++) c[i] = a[i]*b[i];
+  FwhtInternal(c, op, true);
+  return c;
+}
+
+template <typename T, typename V>
+std::vector<T> fwht_pow(std::vector<T> a, V m, FwhtOperator op)
+{
+  int n = a.size();
+  FwhtInternal(a, op, false);
+  std::vector<T> c(n);
+  for(int i = 0; i < n; i++) c[i] = powR(a[i], m);
+  FwhtInternal(c, op, true);
+  return c;
 }
 
 }  // namespae algo
