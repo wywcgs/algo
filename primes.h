@@ -91,3 +91,5 @@ bool RabinMiller(llong n)
 }
 
 }  // namespace algo
+
+#endif  //ALGO_PRIMES_H_
